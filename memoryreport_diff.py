@@ -21,13 +21,6 @@ def file_picker(sender, data):
 
 
 
-# def apply_selected_file(sender, data):
-#     log_debug(data)  # so we can see what is inside of data
-#     directory = data[0]
-#     file = data[1]
-#     set_value("directory", directory)
-#     set_value("file", file)
-#     set_value("file_path", f"{directory}\\{file}")
 
 
 with window("Tutorial"):
