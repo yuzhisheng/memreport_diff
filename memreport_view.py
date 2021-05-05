@@ -57,7 +57,7 @@ class MainWindow():
             add_button("Go", callback = self.Controller.Diff)
 
             add_text("统计对比")
-            add_table("Table##Summary", ["类型", "占用[MB]", "Diff Start占用[MB]", "Diff End占用(MB)"], height = 200)
+            add_table("Table##Summary", ["类型", "增加[MB]", "Diff Start[MB]", "Diff End(MB)"], height = 400)
             
 
             add_text("Object对比")

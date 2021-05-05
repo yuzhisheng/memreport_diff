@@ -37,9 +37,22 @@ class MemreportDiff():
         print("Diff" + str(self.DiffStart) + " " + str(self.DiffEnd))
         self.DiffInfo = MemoryReportDiffInfo(self.DiffStart, self.DiffEnd)
         self.RefreshObjTable(ObjectSortType.CountIncrease)
+        self.RefreshSummaryTable()
 
     def RefreshSummaryTable(self):
-        pass
+        TableData = []
+        TableData += self.GetSummaryRowList(self.DiffInfo.m1.SummaryMemoryList, self.DiffInfo.m2.SummaryMemoryList)
+        TableData += self.GetSummaryRowList(self.DiffInfo.m1.StatMemoryList, self.DiffInfo.m2.StatMemoryList)
+
+        set_table_data("Table##Summary", TableData)
+
+    def GetSummaryRowList(self, List1, List2):
+        TableData = []
+        for i, item1 in  enumerate(List1):
+            item2 = List2[i]
+            row = [item1["key"], "%.2f"%(item2['value'] - item1['value']), item1['value'], item2['value']]
+            TableData.append(row)
+        return TableData
 
     def RefreshObjTable(self, sortType):
         TableData = []
