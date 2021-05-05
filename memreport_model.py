@@ -12,9 +12,10 @@ from enum import Enum
 os.chdir(".")
 
 class ObjectSortType(Enum):
-    COUNTDIFF = 1
-    NUMKBDIFF = 2
-    MAXKBDIFF = 3
+    Class = 1
+    CountIncrease = 2
+    NumKBIncrease = 3
+    MaxKBIncrease = 4
 
 class UObjectInfo():
     def __init__(self, line = ""):
@@ -22,6 +23,7 @@ class UObjectInfo():
         self.Count = 0
         self.NumKB = 0
         self.MaxKB = 0
+        self.precision = 2
         self.ParseFromeLine(line)
 
     def ParseFromeLine(self,line):
@@ -33,8 +35,8 @@ class UObjectInfo():
 
         self.Clsname = ls[0]
         self.Count = int(ls[1])
-        self.NumKB = float(ls[2])
-        self.MaxKB = float(ls[3])
+        self.NumKB = float("{:.2f}".format(float(ls[2])))
+        self.MaxKB = float("{:.2f}".format(float(ls[3])))
 
     def __iadd__(self, other):
         self.Count += other.Count
@@ -44,7 +46,7 @@ class UObjectInfo():
 
 
 class UObjectDiffInfo():
-    SortType = ObjectSortType.COUNTDIFF
+    SortType = ObjectSortType.CountIncrease
 
     def __init__(self, o1 = None, o2 = None):
         self.Clsname = ""
@@ -61,9 +63,11 @@ class UObjectDiffInfo():
         self.Diff()
 
     def __lt__(self, other):
-        if UObjectDiffInfo.SortType == ObjectSortType.COUNTDIFF:
+        if UObjectDiffInfo.SortType == ObjectSortType.CountIncrease:
             return self.CountDiff > other.CountDiff
-        elif UObjectDiffInfo.SortType == ObjectSortType.NUMKBDIFF:
+        elif UObjectDiffInfo.SortType == ObjectSortType.Class:
+            return self.Clsname < other.Clsname
+        elif UObjectDiffInfo.SortType == ObjectSortType.NumKBIncrease:
             return self.NumKBDiff > other.NumKBDiff
         else:
             return self.MaxKBDiff > other.MaxKBDiff
@@ -77,8 +81,8 @@ class UObjectDiffInfo():
     def Diff(self):
         self.Clsname = self.o1.Clsname or self.o2.Clsname
         self.CountDiff = self.o2.Count - self.o1.Count
-        self.NumKBDiff = self.o2.NumKB - self.o1.NumKB
-        self.MaxKBDiff = self.o2.MaxKB - self.o1.MaxKB
+        self.NumKBDiff = float("%.2f"%(self.o2.NumKB - self.o1.NumKB))
+        self.MaxKBDiff = float("%.2f"%(self.o2.MaxKB - self.o1.MaxKB))
 
     @staticmethod
     def Fmt():
@@ -297,11 +301,11 @@ class MemoryReportDiffer():
 
 def main(opts):
     if opts.sort == 'c':
-        UObjectDiffInfo.SortType = ObjectSortType.COUNTDIFF
+        UObjectDiffInfo.SortType = ObjectSortType.CountIncrease
     elif opts.sort == 'n':
-        UObjectDiffInfo.SortType = ObjectSortType.NUMKBDIFF
+        UObjectDiffInfo.SortType = ObjectSortType.NumKBIncrease
     else:
-        UObjectDiffInfo.SortType = ObjectSortType.MAXKBDIFF
+        UObjectDiffInfo.SortType = ObjectSortType.MaxKBIncrease
 
     MemoryReportDiffer(opts.url)
  

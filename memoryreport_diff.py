@@ -6,53 +6,71 @@ from dearpygui.demo import show_demo
 import tkinter as tk
 from tkinter import filedialog
 import os
+from memreport_model import *
+from filemanager import *
+from memreport_view import *
 
 
-
-class MainWindow():
+class MemreportDiff():
     def __init__(self):
-        add_additional_font('C:\\Windows\\Fonts\\simhei.TTF', 18, glyph_ranges='chinese_simplified_common')
-        set_theme("Light")
-        set_style_frame_rounding(6)
+        self.filemanager = FileManager()
+        self.DiffStartMp = None
+        self.DiffEndMp = None 
+        self.DiffStart = None
+        self.DiffEnd = None
+        self.DiffInfo = None
+        pass
 
-        self.CreateWindow()
+    def LoadAllFiles(self):
+        self.filemanager.LoadAllFiles(get_value("sourceurl"))
+        configure_item("##DiffStart", items = self.filemanager.file_list)
+        configure_item("##DiffEnd", items = self.filemanager.file_list)
+        
 
-        # show_demo()
-        start_dearpygui(primary_window = "MemreportDiff")
+    def OnSelectDiffStart(self, sender, data):
+        self.DiffStart = MemoryReportInfo(self.filemanager.GetUrlByFile(get_value(sender)))
 
-    def file_picker(self, sender, data):
-        tk.Tk().withdraw()
-        answer = filedialog.askdirectory(initialdir=os.getcwd(),
-                                        title="Please select a folder:")
-        set_value("sourceurl", answer)
+    def OnSelectDiffEnd(self, sender, data):
+        self.DiffEnd = MemoryReportInfo(self.filemanager.GetUrlByFile(get_value(sender)))
+
+    def Diff(self, sender = None, data = None):
+        print("Diff" + str(self.DiffStart) + " " + str(self.DiffEnd))
+        self.DiffInfo = MemoryReportDiffInfo(self.DiffStart, self.DiffEnd)
+        self.RefreshObjTable(ObjectSortType.CountIncrease)
+
+    def RefreshSummaryTable(self):
+        pass
+
+    def RefreshObjTable(self, sortType):
+        TableData = []
+        UObjectDiffInfo.SortType = sortType
+        objDiffs = sorted(self.DiffInfo.ObjDiffs)
+
+        TotalInfo = UObjectDiffInfo()
+        for ObjDiff in objDiffs:
+            TotalInfo += ObjDiff
+        TotalInfo.Clsname = "*Total*"
+        objDiffs.append(TotalInfo)
+
+        for ObjDiffInfo in objDiffs:
+            if ObjDiffInfo.CountDiff != 0:
+                row = [ObjDiffInfo.Clsname, ObjDiffInfo.CountDiff, ObjDiffInfo.o1.Count, ObjDiffInfo.o2.Count, ObjDiffInfo.NumKBDiff, ObjDiffInfo.o1.NumKB, ObjDiffInfo.o2.NumKB, ObjDiffInfo.MaxKBDiff, ObjDiffInfo.o1.MaxKB, ObjDiffInfo.o2.MaxKB]
+                TableData.append(row)
 
 
-    def CreateWindow(self):
-        mainWindowSize = get_main_window_size()
-        with window("MemreportDiff", width = mainWindowSize[0], height = mainWindowSize[1],
-            x_pos = 0, y_pos = 0, no_move = True, no_collapse = True, no_title_bar = True, menubar = True):
-            add_input_text("##sourceurl", source = "sourceurl", hint = "url或者文件夹路径")
-            add_same_line()
-            add_button("打开文件夹", callback=self.file_picker)
-            add_same_line()
 
-            add_button("加载所有文件", callback=self.file_picker)
-            add_separator()
-            add_spacing(count = 2)
+        set_table_data("Table##ObjectDiff", TableData)
 
-
-            add_text("Diff Start")
-            add_same_line()
-            add_combo("##DiffStart", width = 200)
-
-            add_same_line()
-            add_text("Diff End")
-            add_same_line()
-            add_combo("##DiffEnd", width = 200)
+    def OnSortTypeChange(self, sender, data):
+        sortStr = get_value(sender)
+        self.RefreshObjTable(ObjectSortType[sortStr])
 
 
 def main():
-    MainWindow()
+    controller = MemreportDiff()
+    # show_demo()
+    MainWindow(controller)
+
 
 if __name__ == '__main__':
     main()
